@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	scanner := bufio.NewScanner(os.Stdin)
+    scanner := bufio.NewScanner(os.Stdin)
 
     spelled := map[string]int{
         "one":   1,
@@ -26,8 +26,8 @@ func main() {
     total := 0
     total2 := 0
     re := regexp.MustCompile(`[a-z]+`)
-	for scanner.Scan() {
-		line := scanner.Text()
+    for scanner.Scan() {
+        line := scanner.Text()
         res2 := ""
         for index := range line {
             for key, value := range spelled {
@@ -48,7 +48,7 @@ func main() {
         j, _ := strconv.Atoi(second_part)
         total2 += j
         
-	}
+    }
     fmt.Println("Part 1", total)
     fmt.Println("Part 2", total2)
 }
