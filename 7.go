@@ -24,12 +24,7 @@ type Hand struct {
 func parseHandType(handString string) string {
     counter := map[rune]int{}
 
-    jokers := 0
     for _, c := range handString {
-        if c == '*' {
-            jokers++
-            continue
-        }
         _, exists := counter[c]
         if exists {
             counter[c]++
@@ -37,7 +32,8 @@ func parseHandType(handString string) string {
             counter[c] = 1
         }
     }
-
+    jokers := counter['*']
+    delete(counter, '*')
     if jokers == 5 {
         return "5"
     }
@@ -86,15 +82,18 @@ func (a ByStrength) Less(i, j int) bool {
  }
 
 func withJokers(originalHand Hand) Hand {
-    newHandStr := ""
-    for _, r := range originalHand.handString {
-        toAdd := r
-        if r == 'J' {
-            toAdd = '*'
-        } 
-        newHandStr = fmt.Sprintf("%s%c", newHandStr, toAdd)
-    }
+    newHandStr := strings.Replace(originalHand.handString, "J", "*", -1)
     return Hand{newHandStr, parseHandType(newHandStr), originalHand.amount, getCardStrengths(newHandStr)}
+}
+
+func getHandsScore(hands []Hand) int {
+    sort.Sort(ByStrength(hands))
+
+    answer := 0
+    for index, hand := range hands {
+        answer += hand.amount * (index + 1)
+    }
+    return answer
 }
 
 func main() {
@@ -119,23 +118,12 @@ func main() {
         tokens := strings.Fields(scanner.Text())
         hands = append(hands, Hand{tokens[0], parseHandType(tokens[0]), toInt(tokens[1]), getCardStrengths(tokens[0])})
     }
-    sort.Sort(ByStrength(hands))
-
-    answer1 := 0
-    for index, hand := range hands {
-        answer1 += hand.amount * (index + 1)
-    }
-    fmt.Println("Part 1", answer1)
+    fmt.Println("Part 1", getHandsScore(hands))
 
     var hands2[] Hand
     for _, hand := range hands {
         hands2 = append(hands2, withJokers(hand))
     }
-    sort.Sort(ByStrength(hands2))
-    answer2 := 0
-    for index, hand := range hands2 {
-        answer2 += hand.amount * (index + 1)
-    }
-    fmt.Println("Part 2", answer2)
+    fmt.Println("Part 2", getHandsScore(hands2))
 }
 
