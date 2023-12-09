@@ -13,13 +13,12 @@ func toInt(number_str string) int {
     return value
 }
 
-func parseSeq(line string) []int {
-    tokens := strings.Fields(line)
-    result := []int{}
-    for _, token := range tokens {
-        result = append(result, toInt(token))
-    }
-    return result
+func mapFn[V any, T any](collection []V, fn func(V)T) []T {
+	result := []T{}
+	for _, val := range collection {
+		result = append(result, fn(val))
+	}
+	return result
 }
 
 func interpolateSequence(sequence []int, onLeft bool) []int {
@@ -58,7 +57,7 @@ func main() {
     result1 := 0
     result2 := 0
     for scanner.Scan() {
-        sequence := parseSeq(scanner.Text())
+        sequence := mapFn(strings.Fields(scanner.Text()), toInt)
         sequences = append(sequences, sequence)
         sequenceRight := interpolateSequence(sequence, false)
         result1 += sequenceRight[len(sequenceRight) - 1]
