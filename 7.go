@@ -96,6 +96,14 @@ func getHandsScore(hands []Hand) int {
     return answer
 }
 
+func mapFn[V any](collection []V, fn func(V)V) []V {
+	result := []V{}
+	for _, val := range collection {
+		result = append(result, fn(val))
+	}
+	return result
+}
+
 func main() {
     scanner := bufio.NewScanner(os.Stdin)
 
@@ -108,10 +116,11 @@ func main() {
         "14":   6,
         "5": 7,
     }
-    
+
     CARD_STRENGTHS = map[rune]int{
         '*': 1, '2': 2, '3': 3, '4': 4, '5': 5, '6': 6, '7': 7, '8': 8, '9': 9, 'T': 10, 'J': 11, 'Q': 12, 'K': 13, 'A': 14,
     }
+
 
     var hands []Hand
     for scanner.Scan() {
@@ -119,11 +128,7 @@ func main() {
         hands = append(hands, Hand{tokens[0], parseHandType(tokens[0]), toInt(tokens[1]), getCardStrengths(tokens[0])})
     }
     fmt.Println("Part 1", getHandsScore(hands))
-
-    var hands2[] Hand
-    for _, hand := range hands {
-        hands2 = append(hands2, withJokers(hand))
-    }
+	hands2 := append([]Hand{}, mapFn(hands, withJokers)...)
     fmt.Println("Part 2", getHandsScore(hands2))
 }
 
