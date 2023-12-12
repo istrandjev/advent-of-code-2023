@@ -37,15 +37,8 @@ func solve(idx int, gi int) int {
         return res
     }
     if gi == len(groups) {
-        
-        good := true
-        for _, c := range s[idx:] {
-            if c == '#' {
-                good = false
-            }
-        }
         mem[idx][gi] = 0
-        if good {
+        if !strings.Contains(s[idx:], "#") {
             mem[idx][gi] = 1
         }
         return mem[idx][gi]
@@ -59,13 +52,7 @@ func solve(idx int, gi int) int {
             mem[idx][gi] = 0
             return 0
         }
-        good := true
-        for j := idx +  1; j < idx + groups[gi]; j++ {
-            if s[j] == '.' {
-                good = false
-                break
-            }
-        }
+        good := !strings.Contains(s[idx + 1:idx + groups[gi]], ".")
         if idx + groups[gi] < len(s) && s[idx + groups[gi]] == '#' {
             good = false
         }
