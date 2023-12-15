@@ -41,25 +41,23 @@ func ParseCommand(command string) (string, int) {
 func ProcessCommand(boxes [][]Lens, label string, value int) {
     boxNumber := Hash(label)
 
-    if value == -1 {
-        for i, l := range boxes[boxNumber] {
-            if l.label == label {
-                boxes[boxNumber] = append(boxes[boxNumber][:i], boxes[boxNumber][i + 1:]...)
-            }
-        }
-        return
-    }
     idx := -1
-    for i := 0; i < len(boxes[boxNumber]); i++ {
-        if boxes[boxNumber][i].label == label {
+    for i, box := range boxes[boxNumber] {
+        if box.label == label {
             idx = i
         }
     }
 
-    if idx == -1 {
-        boxes[boxNumber] = append(boxes[boxNumber], Lens{label, value})
+    if value == -1 {
+        if idx != -1 {
+            boxes[boxNumber] = append(boxes[boxNumber][:idx], boxes[boxNumber][idx + 1:]...)
+        }
     } else {
-        boxes[boxNumber][idx] = Lens{label, value}
+        if idx == -1 {
+            boxes[boxNumber] = append(boxes[boxNumber], Lens{label, value})
+        } else {
+            boxes[boxNumber][idx] = Lens{label, value}
+        }
     }
 }
 
