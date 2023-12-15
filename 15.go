@@ -75,10 +75,7 @@ func main() {
     scanner := bufio.NewScanner(os.Stdin)
 
     result1 := 0
-    var boxes [][]Lens
-    for i := 0; i < 256; i++ {
-        boxes = append(boxes, []Lens{})
-    }
+    boxes := make([][]Lens, 256)
 
     for scanner.Scan() {
         line := scanner.Text()
