@@ -131,7 +131,7 @@ func SolvePart2(steps int, start [2] int) int {
     odds := 0
     evens := 0
 
-    limit := 3
+    limit := 2
 
     for x := -deltax; x <= deltax; x++ {
         rem := steps - abs(x * n)
