@@ -65,9 +65,9 @@ var pre = []int{}
 var low = []int{}
 var cnt = 0
 var ans = [][2]int{}
-var exluded = map[[2]int]bool{}
+var excluded = map[[2]int]bool{}
 func IsExcluded(a int, b int) bool {
-    _, exists := exluded[[2]int{min(a, b), max(a, b)}]
+    _, exists := excluded[[2]int{min(a, b), max(a, b)}]
     return exists
 }
 func Dfs(ne [][]int, dad int, v int) {
@@ -110,7 +110,60 @@ func GetBridges(ne [][]int) [][2]int {
     return ans
 }
 
+func RunBfs(v int, ne [][]int) ([]int, []int) {
+    visited := make([]int, len(ne))
+    dad := make([]int, len(ne))
+    for i := range visited {
+        visited[i] = -1
+    }
+    q := Queue{}
+    q.Enqueue(v)
+    visited[v] = 0
+    dad[v] = v
+    for !q.IsEmpty() {
+        cur := q.Deque()
+        for _, next := range ne[cur] {
+            if visited[next] != -1 {
+                continue
+            }
+            visited[next] = visited[cur] + 1
+            dad[next] = cur
+            q.Enqueue(next)
+        }
+    }
+    return visited, dad
+}
+
 func RemovedEdges(ne [][]int) [][2]int {
+    tempDist, _ := RunBfs(0, ne)
+    furthest := 1
+    for i := range tempDist {
+        if tempDist[i] > tempDist[furthest] {
+            furthest = i
+        }
+    }
+    dist, _ := RunBfs(furthest, ne)
+    furthest2 := 0
+    for i := range dist {
+        if dist[i] > dist[furthest2] {
+            furthest2 = i
+        }
+    }
+    dist2, dad := RunBfs(furthest2, ne)
+    edgesMustUse := map[[2]int]bool{}
+    furthest3 := 0
+    for i := range dist2 {
+        if dist2[i] > dist2[furthest3] {
+            furthest3 = i
+        }
+    }
+    cur := furthest3
+    for dad[cur] != cur {
+        edge := [2]int{min(cur, dad[cur]), max(cur, dad[cur])}
+        edgesMustUse[edge] = true
+        cur = dad[cur]
+    }
+
     allEdges := [][2]int{}
     for from, v := range ne {
         for _, to := range v {
@@ -118,18 +171,19 @@ func RemovedEdges(ne [][]int) [][2]int {
         }
     }
     for i, edge1 := range allEdges {
+        _, exists1 := edgesMustUse[edge1]
         for _, edge2 := range allEdges[i + 1:] {
-            exluded = map[[2]int]bool{edge1: true, edge2: true}
+            _, exists2 := edgesMustUse[edge2]
+            if !exists1 && !exists2 {
+                continue
+            }
+            excluded = map[[2]int]bool{edge1: true, edge2: true}
             res := GetBridges(ne)
             if len(res) > 0 {
-                if len(res) > 1 {
-                    fmt.Println("Problem!", len(res))
-                }
                 return [][2]int{edge1, edge2, res[0]}
             }
         }
     }
-    fmt.Println("Not found!")
     return [][2]int{}
 }
 
@@ -162,15 +216,23 @@ func GetComponentSizes(ne [][]int) int {
     }
     return result
 }
+
+type Edge struct {
+    from int
+    to int
+    count int
+}
+
+type ByCount []Edge
+func (a ByCount) Len() int           { return len(a) }
+func (a ByCount) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a ByCount) Less(i, j int) bool { return a[i].count > a[j].count }
+
 func SolvePart1(ne [][]int) int {
-    t := 0
-    for _, v := range ne {
-        t += len(v)
-    }
     res := RemovedEdges(ne)
-    exluded = map[[2]int]bool{}
+    excluded = map[[2]int]bool{}
     for _, e := range res {
-        exluded[e] = true
+        excluded[e] = true
     }
     return GetComponentSizes(ne)
 }
