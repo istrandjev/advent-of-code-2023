@@ -66,9 +66,14 @@ var low = []int{}
 var cnt = 0
 var ans = [][2]int{}
 var excluded = map[[2]int]bool{}
-func IsExcluded(a int, b int) bool {
-    _, exists := excluded[[2]int{min(a, b), max(a, b)}]
+
+func Contains(val [2]int, m map[[2]int]bool) bool {
+    _, exists := m[val]
     return exists
+}
+
+func IsExcluded(a int, b int) bool {
+    return Contains([2]int{min(a, b), max(a, b)}, excluded)
 }
 func Dfs(ne [][]int, dad int, v int) {
     pre[v] = cnt
@@ -110,7 +115,7 @@ func GetBridges(ne [][]int) [][2]int {
     return ans
 }
 
-func RunBfs(v int, ne [][]int) ([]int, []int) {
+func RunBfs(v int, ne [][]int, avoidEdges map[[2]int] bool) map[[2]int]bool {
     visited := make([]int, len(ne))
     dad := make([]int, len(ne))
     for i := range visited {
@@ -120,10 +125,15 @@ func RunBfs(v int, ne [][]int) ([]int, []int) {
     q.Enqueue(v)
     visited[v] = 0
     dad[v] = v
+    last := v
     for !q.IsEmpty() {
         cur := q.Deque()
+        last = cur
         for _, next := range ne[cur] {
             if visited[next] != -1 {
+                continue
+            }
+            if Contains([2]int{min(cur, next), max(cur, next)}, avoidEdges) {
                 continue
             }
             visited[next] = visited[cur] + 1
@@ -131,38 +141,21 @@ func RunBfs(v int, ne [][]int) ([]int, []int) {
             q.Enqueue(next)
         }
     }
-    return visited, dad
+    cur := last
+    result := map[[2]int]bool{}
+    for dad[cur] != cur {
+        edge := [2]int{min(cur, dad[cur]), max(cur, dad[cur])}
+        result[edge] = true
+        cur = dad[cur]
+    }
+
+    return result
 }
 
 func RemovedEdges(ne [][]int) [][2]int {
-    tempDist, _ := RunBfs(0, ne)
-    furthest := 1
-    for i := range tempDist {
-        if tempDist[i] > tempDist[furthest] {
-            furthest = i
-        }
-    }
-    dist, _ := RunBfs(furthest, ne)
-    furthest2 := 0
-    for i := range dist {
-        if dist[i] > dist[furthest2] {
-            furthest2 = i
-        }
-    }
-    dist2, dad := RunBfs(furthest2, ne)
-    edgesMustUse := map[[2]int]bool{}
-    furthest3 := 0
-    for i := range dist2 {
-        if dist2[i] > dist2[furthest3] {
-            furthest3 = i
-        }
-    }
-    cur := furthest3
-    for dad[cur] != cur {
-        edge := [2]int{min(cur, dad[cur]), max(cur, dad[cur])}
-        edgesMustUse[edge] = true
-        cur = dad[cur]
-    }
+    avoidEdges := map[[2]int]bool{}
+    avoidEdges = RunBfs(0, ne, avoidEdges)
+    avoidEdges2 := RunBfs(0, ne, avoidEdges)
 
     allEdges := [][2]int{}
     for from, v := range ne {
@@ -171,10 +164,12 @@ func RemovedEdges(ne [][]int) [][2]int {
         }
     }
     for i, edge1 := range allEdges {
-        _, exists1 := edgesMustUse[edge1]
+        if !Contains(edge1, avoidEdges) && !Contains(edge1, avoidEdges2) {
+            continue
+        }
+
         for _, edge2 := range allEdges[i + 1:] {
-            _, exists2 := edgesMustUse[edge2]
-            if !exists1 && !exists2 {
+            if !Contains(edge2, avoidEdges) && !Contains(edge2, avoidEdges2) {
                 continue
             }
             excluded = map[[2]int]bool{edge1: true, edge2: true}
